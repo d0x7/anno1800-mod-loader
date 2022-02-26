@@ -2,17 +2,16 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
 # bazel-skylb 0.8.0 released 2019.03.20 (https://github.com/bazelbuild/bazel-skylib/releases/tag/0.8.0)
-skylib_version = "0.8.0"
+skylib_version = "1.1.1"
 
 git_repository(
     name = "io_bazel",
-    tag = "4.0.0",
+    tag = "4.2.2",
     remote = "https://github.com/bazelbuild/bazel.git",
 )
 
 http_archive(
     name = "bazel_skylib",
-    sha256 = "2ef429f5d7ce7111263289644d233707dba35e39696377ebab8b0bc701f7818e",
     type = "tar.gz",
     url = "https://github.com/bazelbuild/bazel-skylib/releases/download/{}/bazel-skylib.{}.tar.gz".format(skylib_version, skylib_version),
 )
@@ -20,18 +19,16 @@ http_archive(
 # abseil-cpp
 http_archive(
     name = "com_google_absl",
-    strip_prefix = "abseil-cpp-c51510d1d87ebce8615ae1752fd5aca912f6cf4c",
-    sha256 = "ad9676d940ca79ab9552ac9457d534d0e957082ac87701ca8aac24d7f838289b",
-    urls = ["https://github.com/abseil/abseil-cpp/archive/c51510d1d87ebce8615ae1752fd5aca912f6cf4c.zip"],  # Abseil LTS branch, Feb 2020, Patch 2
+    strip_prefix = "abseil-cpp-215105818dfde3174fe799600bb0f3cae233d0bf",
+    urls = ["https://github.com/abseil/abseil-cpp/archive/215105818dfde3174fe799600bb0f3cae233d0bf.zip"],  # Abseil LTS branch, Feb 2020, Patch 2
 )
 
 http_archive(
     name = "com_github_facebook_zstd",
     build_file = "@//:zstd.BUILD",
-    sha256 = "1333b186377b6e86607160b4f5659c86c266b6fb9e7e8b52c7947c3611fc8b5b",
-    strip_prefix = "zstd-83b51e9f886be7c2a4d477b6e7bc6db831791d8d",
+    strip_prefix = "zstd-a488ba114ec17ea1054b9057c26a046fc122b3b6",
     urls = [
-        "https://github.com/facebook/zstd/archive/83b51e9f886be7c2a4d477b6e7bc6db831791d8d.tar.gz",
+        "https://github.com/facebook/zstd/archive/a488ba114ec17ea1054b9057c26a046fc122b3b6.tar.gz",
     ],
 )
 
