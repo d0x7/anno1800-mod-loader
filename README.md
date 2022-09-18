@@ -16,7 +16,7 @@ Short shitty video to show how easy it is to install the loader.
 Head over to the releases page and download the loader.zip from the latest release.  
 Unzip the contents to the location where Anno1800.exe is
 
-> Uplay default path is `C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\games\Anno 1800\Bin\Win64`)
+> Uplay default path is `C:\Program Files (x86)\Ubisoft\Ubisoft Game Launcher\games\Anno 1800\Bin\Win64`
 
 You will be asked to overwrite python35.dll, just accept that.
 
@@ -89,6 +89,25 @@ example:
     </ModOp>
 ```
 > This ModOp will replace the node under /Values/Standard/Name of the asset with GUID 1337 with:  "```<Name>ThisIsATestNameForGUID1337</Name>```"
+
+## Split XML Patch into Multiple Files
+
+You can split your XML patches into multiple files by using `Include` instructions.
+
+```xml
+<ModOps>
+    <!-- ModOps applied before the include -->
+    <Include File="even-more-modops.include.xml" />
+    <!-- ModOps applied after the include -->
+</ModOps>
+```
+
+`File` takes a file path relative to the XML file that does the include.
+
+XML files without a counterpart in the game are normally mistakes and lead to errors in the log.
+Use the extension `*.include.xml` to prevent that.
+
+Otherwise, included XML patches are handled the same way as normal XML patches. Nesting includes is supported.
 
 ## Tutorial: Adding a new zoom level
 
