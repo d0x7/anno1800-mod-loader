@@ -25,6 +25,9 @@
 #include <optional>
 #include <sstream>
 
+#include <shlobj.h>
+#pragma comment(lib, "Ole32.lib")
+
 constexpr static auto PATCH_OP_VERSION = "1.17";
 
 Mod& ModManager::Create(const fs::path& root)
@@ -56,7 +59,7 @@ void ModManager::LoadMods()
     std::vector<fs::path> mod_roots;
     for (auto&& root : fs::directory_iterator(mods_directory)) {
         if (root.is_directory()) {
-            if ( root.path().stem().wstring() == L".cache") {
+            if (root.path().stem().wstring() == L".cache") {
                 continue;
             }
             if (IsModEnabled(root.path())) {
@@ -215,7 +218,9 @@ void ModManager::WaitModsReady() const
 Mod& ModManager::GetModContainingFile(const fs::path& file)
 {
     for (auto& mod : mods_) {
-        if (file.lexically_normal().generic_string().find(mod.Path().lexically_normal().generic_string()) == 0) {
+        if (file.lexically_normal().generic_string().find(
+                mod.Path().lexically_normal().generic_string())
+            == 0) {
             return mod;
         }
     }
@@ -279,8 +284,8 @@ void ModManager::WriteCacheInfo(const fs::path& game_path)
     for (auto file : fs::directory_iterator(cache_directory / game_path)) {
         const auto file_name = file.path().filename();
         auto       it        = std::find_if(begin(modded_file_cache_info_[game_path]),
-                               end(modded_file_cache_info_[game_path]),
-                               [file_name](const auto& x) { return file_name == x.layer_file; });
+                                            end(modded_file_cache_info_[game_path]),
+                                            [file_name](const auto& x) { return file_name == x.layer_file; });
         //
         if (it == end(modded_file_cache_info_[game_path])) {
             fs::remove(file);
@@ -334,9 +339,9 @@ std::string ModManager::ReadCacheLayer(const fs::path& game_path, const std::str
 }
 
 ModManager::LayerId ModManager::PushCacheLayer(const fs::path&    game_path,
-                                       const LayerId& last_valid_cache,
-                                       const std::string& patch_file_hash, const std::string& buf,
-                                       const std::string& mod_name)
+                                               const LayerId&     last_valid_cache,
+                                               const std::string& patch_file_hash,
+                                               const std::string& buf, const std::string& mod_name)
 {
     CacheLayer layer;
     layer.input_hash  = last_valid_cache.output;
@@ -345,13 +350,14 @@ ModManager::LayerId ModManager::PushCacheLayer(const fs::path&    game_path,
     layer.layer_file  = layer.output_hash;
     layer.mod_name    = mod_name;
 
-    spdlog::debug("PushCacheLayer {} {} {} {} {}", game_path.string(), last_valid_cache.output, patch_file_hash, layer.output_hash,
-        mod_name);
+    spdlog::debug("PushCacheLayer {} {} {} {} {}", game_path.string(), last_valid_cache.output,
+                  patch_file_hash, layer.output_hash, mod_name);
 
     auto& cache = modded_file_cache_info_[game_path];
 
     for (const auto& layer : cache) {
-        spdlog::debug("  Layers {} {} {} {}", game_path.string(), layer.input_hash, layer.patch_hash, layer.output_hash);
+        spdlog::debug("  Layers {} {} {} {}", game_path.string(), layer.input_hash,
+                      layer.patch_hash, layer.output_hash);
     }
 
     auto it = find_if(begin(cache), end(cache), [&last_valid_cache](const auto& x) {
@@ -369,8 +375,8 @@ ModManager::LayerId ModManager::PushCacheLayer(const fs::path&    game_path,
     fs::create_directories(cache_directory / game_path);
     std::ofstream ofs((cache_directory / game_path / layer.layer_file), std::ofstream::binary);
 
-    size_t const cBuffSize = ZSTD_compressBound(buf.size());
-    static thread_local std::string  CompressedBuffer;
+    size_t const                    cBuffSize = ZSTD_compressBound(buf.size());
+    static thread_local std::string CompressedBuffer;
     CompressedBuffer.resize(cBuffSize);
     size_t const cSize =
         ZSTD_compress(CompressedBuffer.data(), CompressedBuffer.size(), buf.data(), buf.size(), 1);
@@ -382,10 +388,11 @@ ModManager::LayerId ModManager::PushCacheLayer(const fs::path&    game_path,
     cache.push_back(layer);
 
     for (const auto& layer : cache) {
-        spdlog::debug("  New Layers {} {} {} {}", game_path.string(), layer.input_hash, layer.patch_hash, layer.output_hash);
+        spdlog::debug("  New Layers {} {} {} {}", game_path.string(), layer.input_hash,
+                      layer.patch_hash, layer.output_hash);
     }
 
-    return { layer.output_hash, patch_file_hash};
+    return {layer.output_hash, patch_file_hash};
 }
 
 void ModManager::EnsureDummy()
@@ -430,14 +437,12 @@ void ModManager::GameFilesReady()
 
             auto game_file = ReadGameFile(game_path);
             if (game_file.empty()) {
-                if (!IsIncludeFile(game_path))
-                {
+                if (!IsIncludeFile(game_path)) {
                     for (auto& on_disk_file : on_disk_files) {
                         spdlog::error("Failed to get original game file {} {}", game_path.string(),
-                                    on_disk_file.string());
-                    }    
-                }
-                else {
+                                      on_disk_file.string());
+                    }
+                } else {
                     // include files are not expected to have original counterparts,
                     // but should follow normal patching procedure if they do
                 }
@@ -445,7 +450,7 @@ void ModManager::GameFilesReady()
             }
             std::shared_ptr<pugi::xml_document> game_xml         = nullptr;
             auto                                game_file_hash   = GetDataHash(game_file);
-            LayerId                             last_valid_cache = { "", "" };
+            LayerId                             last_valid_cache = {"", ""};
             std::string                         next_input_hash  = game_file_hash;
 
             for (auto&& on_disk_file : on_disk_files) {
@@ -458,8 +463,8 @@ void ModManager::GameFilesReady()
                 if (output_hash) {
                     // Cache hit
                     last_valid_cache.output = *output_hash;
-                    last_valid_cache.patch = patch_file_hash;
-                    next_input_hash  = *output_hash;
+                    last_valid_cache.patch  = patch_file_hash;
+                    next_input_hash         = *output_hash;
                 } else {
                     next_input_hash = "";
 
@@ -482,9 +487,9 @@ void ModManager::GameFilesReady()
                     spdlog::debug("Cache miss {} {}", next_input_hash, patch_file_hash);
 
                     // Cache miss
-                    auto &mod = GetModContainingFile(on_disk_file);
-                    auto operations = XmlOperation::GetXmlOperationsFromFile(
-                        on_disk_file, mod.Name(), game_path, on_disk_file);
+                    auto& mod        = GetModContainingFile(on_disk_file);
+                    auto  operations = XmlOperation::GetXmlOperationsFromFile(
+                         on_disk_file, mod.Name(), game_path, on_disk_file);
                     for (auto&& operation : operations) {
                         operation.Apply(game_xml);
                     }
@@ -507,7 +512,7 @@ void ModManager::GameFilesReady()
 
                     if (last_valid_cache.output.empty()) {
                         last_valid_cache.output = game_file_hash;
-                        last_valid_cache.patch = "";
+                        last_valid_cache.patch  = "";
                     }
                     last_valid_cache = PushCacheLayer(game_path, last_valid_cache, patch_file_hash,
                                                       buf, on_disk_file.string());
@@ -595,6 +600,21 @@ void ModManager::Shutdown()
 
 fs::path ModManager::GetModsDirectory()
 {
+    // first check for the existence of the mods folder in Documents/Anno 1800
+    PWSTR    documents_folder = nullptr;
+    HRESULT  grab_my_docs = SHGetKnownFolderPath(FOLDERID_Documents, 0, NULL, &documents_folder);
+    fs::path documents_path;
+    if (SUCCEEDED(grab_my_docs)) {
+        documents_path = documents_folder;
+    }
+    CoTaskMemFree(documents_folder);
+    if (SUCCEEDED(grab_my_docs)) {
+        if (fs::exists(documents_path / "Anno 1800" / "mods")) {
+            return fs::canonical(documents_path / "Anno 1800"
+                / "mods"); // early bail on "my documents/Anno 1800/mods"
+        }
+    }
+
     fs::path mods_directory;
     HMODULE  module;
     if (GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS
@@ -604,6 +624,7 @@ fs::path ModManager::GetModsDirectory()
         GetModuleFileNameW(module, path, sizeof(path));
         fs::path dll_file(path);
         try {
+
             auto mods_parent = fs::canonical(dll_file.parent_path() / ".." / "..");
             mods_directory   = mods_parent / "mods";
             if (!fs::exists(mods_directory)) {
